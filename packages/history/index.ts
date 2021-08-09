@@ -49,7 +49,7 @@ export type Search = string;
 export type Hash = string;
 
 /**
- * An object that is used to associate some arbitrary data with a location, but
+ * An object that is used to associate(联合) some arbitrary(任意的) data with a location, but
  * that does not appear in the URL path.
  *
  * @see https://github.com/ReactTraining/history/tree/master/docs/api-reference.md#location.state
@@ -58,7 +58,7 @@ export type State = object | null;
 
 /**
  * A unique string associated with a location. May be used to safely store
- * and retrieve data in some other storage API, like `localStorage`.
+ * and retrieve(检索) data in some other storage API, like `localStorage`.
  *
  * @see https://github.com/ReactTraining/history/tree/master/docs/api-reference.md#location.key
  */
@@ -83,7 +83,7 @@ export interface Path {
   search: Search;
 
   /**
-   * A URL fragment identifier, beginning with a #.
+   * A URL fragment(片段) identifier, beginning with a #.
    *
    * @see https://github.com/ReactTraining/history/tree/master/docs/api-reference.md#location.hash
    */
@@ -228,7 +228,7 @@ export interface History<S extends State = State> {
   readonly action: Action;
 
   /**
-   * The current location. This value is mutable.
+   * The current location. This value is mutable(易变的).
    *
    * @see https://github.com/ReactTraining/history/tree/master/docs/api-reference.md#history.location
    */
@@ -306,7 +306,7 @@ export interface History<S extends State = State> {
   listen(listener: Listener<S>): () => void;
 
   /**
-   * Prevents the current location from changing and sets up a listener that
+   * Prevents(阻止) the current location from changing and sets up a listener that
    * will be called instead.
    *
    * @param blocker - A function that will be called when a transition is blocked
@@ -318,7 +318,7 @@ export interface History<S extends State = State> {
 }
 
 /**
- * A browser history stores the current location in regular URLs in a web
+ * A browser history stores the current location in regular(有规律的) URLs in a web
  * browser environment. This is the standard for most web apps and provides the
  * cleanest URLs the browser's address bar.
  *
@@ -327,12 +327,12 @@ export interface History<S extends State = State> {
 export interface BrowserHistory<S extends State = State> extends History<S> {}
 
 /**
- * A hash history stores the current location in the fragment identifier portion
+ * A hash history stores the current location in the fragment(片段) identifier portion(部分)
  * of the URL in a web browser environment.
  *
  * This is ideal for apps that do not control the server for some reason
  * (because the fragment identifier is never sent to the server), including some
- * shared hosting environments that do not provide fine-grained controls over
+ * shared hosting environments that do not provide fine-grained(细粒度的) controls over
  * which pages are served at which URLs.
  *
  * @see https://github.com/ReactTraining/history/tree/master/docs/api-reference.md#hashhistory
@@ -381,6 +381,7 @@ type HistoryState = {
   idx: number;
 };
 
+//当浏览器窗口关闭或者刷新时，会触发beforeunload事件
 const BeforeUnloadEventType = 'beforeunload';
 const HashChangeEventType = 'hashchange';
 const PopStateEventType = 'popstate';
@@ -469,6 +470,7 @@ export function createBrowserHistory(
 
   if (index == null) {
     index = 0;
+    //globalHistory.replaceState没有传递第三个参数，不会发生url变化，这里应该只是给globalHistory.state传递一个初始data也就是第一个参数的值
     globalHistory.replaceState({ ...globalHistory.state, idx: index }, '');
   }
 
@@ -477,6 +479,9 @@ export function createBrowserHistory(
   }
 
   function getNextLocation(to: To, state: State = null): Location {
+    //新的location与旧的location进行合并
+    //新的state覆盖旧的state
+    //生成新的key
     return readOnly<Location>({
       ...location,
       ...(typeof to === 'string' ? parsePath(to) : to),
@@ -501,6 +506,7 @@ export function createBrowserHistory(
 
   function allowTx(action: Action, location: Location, retry: () => void) {
     return (
+      //逗号运算符
       !blockers.length || (blockers.call({ action, location, retry }), false)
     );
   }
@@ -1054,6 +1060,7 @@ function createEvents<F extends Function>(): Events<F> {
     },
     push(fn: F) {
       handlers.push(fn);
+      //unlisten 函数
       return function() {
         handlers = handlers.filter(handler => handler !== fn);
       };
@@ -1091,13 +1098,15 @@ export function createPath({
 export function parsePath(path: string) {
   let partialPath: PartialPath = {};
 
+  //先判断hash 如果有就拿到hash的部分，并排除hash部分后重新赋值给path,再解析search部分，拿到search部分后，再去除search部分后再拿到剩余部分，即pathname
   if (path) {
+    //解析hash url
     let hashIndex = path.indexOf('#');
     if (hashIndex >= 0) {
       partialPath.hash = path.substr(hashIndex);
       path = path.substr(0, hashIndex);
     }
-
+    //解析search url
     let searchIndex = path.indexOf('?');
     if (searchIndex >= 0) {
       partialPath.search = path.substr(searchIndex);
